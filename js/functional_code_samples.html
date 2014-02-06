@@ -1,0 +1,547 @@
+<html>
+<head>
+	<style type="text/css">
+		html {
+			margin : 0;
+		}
+		body {			
+			width : 50%;
+			margin : auto 5em;
+			font-size : 13px;
+			background-color: #000000;
+			
+		}	
+	
+		#main {
+			margin-top : 5px;
+			background-color: #ffffff;
+			border-radius : 12px ;
+			padding : 10px;
+			margin-bottom : 5em;
+		}
+		b {
+			color: blue;
+			font-size: 16px;
+		}
+	</style>
+</head>
+<body>
+	<div id="main">
+	<H1>Functional Javascript</H1>
+	
+		<script>
+		"use strict";
+		function log(arg){
+			document.writeln(arg + "<br/>");
+			//console.log(arg);
+		}
+		function logb(arg){
+			log("<b>"+ arg + "</b>");
+		}
+		function logSeperator(){
+			log("===========================");	
+		}
+		// identity(3) = 3
+		function identity(x){
+			return x;
+		}
+		
+		// add(3,4) = 7
+		var add = function(a,b){
+			return a+b; 
+		};
+		// sub(3,4) = -1
+		var sub = function(a,b){
+			return a-b; 
+		};
+		// mul(3,4) =12
+		var mul = function(a,b){
+			return a*b; 
+		};
+		log("");
+		logSeperator();
+		logb("Identity function")
+		log("identity(3) = " + identity(3));
+		logSeperator();
+		logb("Simple functions");
+		log("mul(3,4) = " + mul(3,4));
+		log("sub(3,4) = " + sub(3,4));
+		log("add(3,4) = " + add(3,4));
+		logSeperator();
+		logb("Functions returning functions");
+		// identityf(3)() = 3
+		var identityf = function(n){
+			// function identityf(n)
+			return function(){
+				return n;
+			};
+		};
+		// addf(3)(4) = 7
+		var addf = function(a) {
+			return function(b){
+				return add(a,b);
+			};
+		};
+		
+		var identity7 = identityf(7);
+		log("identity7() = " + identity7());
+		log("identityf(3)() = " + identityf(3)());
+		log("addf(3)(4) = " + addf(3)(4));
+		logSeperator();
+		logb("Applyf")
+		// applyf(add)(3)(4) = 7
+		// applyf(mul)(3)(4) = 12
+		var applyf = function(f){
+			// f should be a binary function
+			return function(a){
+				return function(b){
+					return f(a,b);
+				};
+			};
+		};
+		log("applyf(add)(3)(4) = " + applyf(add)(3)(4));
+		log("applyf(mul)(3)(4) = " +applyf(mul)(3)(4));
+		log("applyf(sub)(3)(4) = " +applyf(sub)(3)(4));
+		logSeperator();
+		
+		// curry(add,3)(4) = 7
+		// curry(mul,4)(3) = 12
+		var curry = function(f,a) {
+			return function(b){
+				// this can also be return applyf(f)(a);
+				return f(a,b);
+			};
+		};
+		logb("Currying functions .. ")
+		log("curry(add,3)(4) = " + curry(add,3)(4));
+		log("curry(mul,3)(4) = " + curry(mul,3)(4));
+		logSeperator()
+		logb("Inc function - 3 different methods to implement increment with the existing functions")
+		var inc = applyf(add)(1);
+		log("with applyf(add)(1) -> inc(5) = " + inc(5));
+		inc = curry(add,1);
+		log("with curry(add,1) -> inc(5) = " + inc(5));
+		inc = addf(1);
+		log("with addf(1) -> inc(5) = " + inc(5));
+		logSeperator();
+		logb("Twice function that repeats the arguments to a binary function");
+		// twice(add)(5) = 10
+		// twice(mul)(5) = 25
+		var twice = function(f){
+			///
+			return function(a){
+				// repeat the argument twice for the function. 
+				return f(a,a);
+			};
+		};
+		log("double(5) = twice(add)(5) = " + twice(add)(5));
+		log("square(5) = twice(mul)(5) = " + twice(mul)(5));
+		log("double(-1) = twice(add)(-1) = " + twice(add)(-1));
+		log("square(-1) = twice(mul)(-1) = " + twice(mul)(-1));
+		logSeperator();
+		
+		var switcheroo = function(binary){
+			return function(a,b){
+				return binary(b,a);
+			};		
+		};
+		logb("Switcheroo function that reverses the arguments of a binary function");
+		log("bus(3,2) = switcheroo(sub)(3,2) = " + switcheroo(sub)(3,2));
+		log("bus(2,3) = switcheroo(sub)(2,3) = " + switcheroo(sub)(2,3));
+		logSeperator();
+		logb("Compose two unary functions and returns a unary function that calls them both")
+		var composeu = function(unary1,unary2){
+			return function(arg){
+				return unary2(unary1(arg));
+			};
+		};
+		var doubl = twice(add);
+		var square = twice(mul);
+		log("composeu(double,square)(3) = " + composeu(doubl,square)(3));
+		logSeperator();
+		logb("composeb - compose two binary functions ");
+		var composeb = function(binary1,binary2){
+			return function(a,b,c){
+				return binary2(binary1(a,b),c);
+			}
+		}
+		
+		log("Composeb(add,mul)(2,3,5) = " + composeb(add,mul)(2,3,5));
+		logSeperator();
+		logb("Once function that allows a binary function to be called only once");
+		var once = function(binary){
+			var called = false; 
+			return function(a,b){
+				if(!called){
+					called = true;
+					return binary(a,b);
+				}else{
+					return undefined;
+				}
+			};
+		};
+		
+		var add_once = once(add);
+		log("add_once(3,4) = " + add_once(3,4)); // returns 7.
+		log("add_once(3,5) = " + add_once(3,5)); // will return undefined. 
+		logSeperator();
+		
+		logb("FromTo function that produces a function that will produce values in range");
+		var fromTo = function(a,b){
+			var start = a; 
+			return function(){
+				if(a<b){
+					var x = a; 
+					a = a+1; 
+					return x;
+				}
+			};
+		};
+		var index = fromTo(0,3);
+		log("created index = fromTo(0,3)");
+		log("calling index() " + index()); // 0
+		log("calling index() " + index()); // 1
+		log("calling index() " + index()); // 2
+		log("calling index() " + index()); // should return undefined. 
+		logSeperator();
+		logb("Element function that takes an array and an optional range function like fromTo and produces a function that will produce elements of the array");
+		var element = function(arr,ft){
+			if(!ft){
+				ft = fromTo(0,arr.length);
+			}
+			return function(){
+				return arr[ft()];				
+			};
+		};
+		var val = element(['a','b','c','d'],fromTo(1,3));
+		log("calling val() " + val());
+		log("calling val() " + val());
+		log("calling val() " + val());
+		log(" .. creating val again with no fromTo function")
+		var val = element(['a','b','c','d']);
+		log("calling val() " + val());
+		log("calling val() " + val());
+		log("calling val() " + val());
+		log("calling val() " + val());
+		log("calling val() " + val());
+		logSeperator();
+		logb("Collect() function that takes a function and array and produces a function that will collect results in array");
+		var collect = function(ft,arr){
+			return function(){
+				var i = ft(); 
+				if(i){
+					arr.push(i); 
+				}
+				return i;
+			};
+		};
+		var arr = [], col = collect(fromTo(1,3),arr);
+		log("col() = " + col());
+		log("col() = " + col());
+		log("col() = " + col());
+		log("arr = " + arr);	
+		logSeperator();	
+		logb("Filter function that takes a function and predicate and produces a function that produces only the values approved by the predicate");
+		var filter = function(ft, fn){
+			return function(){
+				var x = ft(); 
+				while(x && !fn(x)){
+					x = ft();
+				}
+				return x; 
+			};
+		}; 
+		
+		var fil = filter(fromTo(0,5),function third(value){
+				 return value % 3 === 0; 
+			 });
+		log("fil() " + fil());
+		log("fil() " + fil());	 				
+		log("fil() " + fil());
+		
+		logSeperator();	
+		logb("Concat function that takes two sequence generating functions and produces a function that combines the sequences")
+		var concat = function(ft1, ft2){
+			return function(){
+				// bit slower, relies on ft1() being valid. 
+				return ft1() || ft2();
+			};
+		};
+		
+		var con = concat(fromTo(1,3),fromTo(0,2));
+		var x;
+		while((x = con()) !== undefined){
+			log("con() " + x);
+		}
+		log("con() " + con());
+		logSeperator();	
+		
+		logb("Construnctor function that returns two functions that implement an up/down counter, hiding the counter");
+		var counterf = function(n){
+			return {
+				inc : function(){
+					n += 1; 
+					return n; 
+				},
+				dec : function(){
+					n -= 1; 
+					return n;
+				}		
+			};		
+		};
+		var counter = counterf(10), 
+		next = counter.inc, prev = counter.dec; 
+		
+		log("next() " + next()) // 11
+		log("prev() " + prev()) // 10
+		log("prev() " + prev()) // 9
+		log("next() " + next()) // 10
+		
+		logSeperator();
+		
+		logb("Revocable function that takes a nice function and returns an object containing an invoke function that can invoke the nice function, and a revoke function that disables the invoke function")
+		var revocable = function(nice){
+			var isGood = true;
+			return {
+				invoke : function(n){
+					if(isGood){ 
+						return nice(n);
+					}else{
+						return undefined;
+					}
+				},
+				revoke : function(){
+					isGood =false;
+				}			
+			};
+		
+		};
+		
+		var revok = revocable(identity),
+		invoke = revok.invoke; 
+		log("invoke(7) = " + invoke(7)); // 7
+		revok.revoke(); // revoke the access. 
+		log("revoking .." );
+		log("invoke(8) = " + invoke(8)); // undefined
+		logSeperator();
+		logb("Gensymf that makes a function that generates unique symbols");
+		
+		var gensymf = function(alpha){
+			var index = 0; 
+			return function(){
+				index +=1 ;
+				return alpha + index; 
+			};
+		}
+		var gensymg = gensymf("G"), 
+		gensymh = gensymf("H");
+		log("gensymg() = " + gensymg());
+		log("gensymh() = " + gensymh());
+		log("gensymg() = " + gensymg());
+		log("gensymh() = " + gensymh());
+		logSeperator();
+		logb("Gensymff that takes a unary function and a seed and returns gensymf ")
+		var gensymff = function(incfunc, seed){
+			return function(alpha){
+				var lseed = seed; 
+				return function(){
+					lseed = incfunc(lseed);
+					return alpha + lseed; 
+				};
+			};
+		}
+		
+		var agensymf = gensymff(inc,0),
+			gensymg = agensymf("G"), gensymh = agensymf("H");
+		log("gensymg() = " + gensymg());
+		log("gensymh() = " + gensymh());
+		log("gensymg() = " + gensymg());
+		log("gensymg() = " + gensymh());
+		logSeperator();
+		logb("Fibonaccif  a fibonacci sequence generator")
+		var fibonaccif = function(a,b){
+			var counter = 0; 
+			return function(){
+				counter += 1; 
+				switch(counter){
+				case 1: return a;
+				case 2: return b;
+				default: 
+					var temp = a+b; 
+					a = b; 
+					b = temp;
+					return temp; 			
+				}			
+			};
+		};
+		var fib = fibonaccif(0,1);
+		for(var i = 0; i < 10 ; i++){
+			log("fib() " + fib());
+		} // generates 0,1,1,2,3,5,8,13,21,34 ..
+		logSeperator();
+		logb("Addm that takes two m objects and returns an m object");
+		function m(value, source){
+			return {
+				value : value, 
+				source : source || String(value)
+			};
+		}
+		
+		var addm = function(m1, m2){ 
+			return m(m1.value + m2.value, "(" + m1.source + " + "+  m2.source + ")");
+		}
+		
+		log("addm(m(3), m(4)) = " + JSON.stringify(addm(m(3),m(4))));
+		log("addm(m(1), m(Math.pi ,'pi') = " + JSON.stringify(addm(m(1),m(Math.PI,"pi"))));		
+		logSeperator();
+		logb("Applym that takes a binary function and a string and returns a function that acts on m objects");
+		var applym = function(binary, sym){
+			return function(m1, m2){
+				return m(binary(m1.value,m2.value), "(" + m1.source + sym + m2.source + ")");
+			};
+		}
+		
+		var addm = applym(add, "+");
+		var mulm = applym(mul,"*");
+		log("Using applym - addm(m(3), m(4)) = " + JSON.stringify(addm(m(3),m(4))));
+		log("Using applym - mulm(m(3), m(4)) = " + JSON.stringify(mulm(m(3),m(4))));
+		
+		logSeperator();
+		
+		logb("Modify applym so that the function it produces can take numbers as well");
+		var applym = function(binary, sym){
+			
+			function getm(x){
+				if(typeof(x) === "number"){
+					return m(x);
+				}
+				return x;
+			}
+			return function(a,b){
+				
+				var m1 = getm(a);
+				var m2 = getm(b);
+				return m(binary(m1.value,m2.value), "(" + m1.source + sym + m2.source + ")");
+			};
+		
+		};
+		
+		
+		var addm = applym(add, "+");
+		log("Using applym - addm(3, 4) = " + JSON.stringify(addm(3,4)));
+		log("Using applym - addm(m(3), m(4)) = " + JSON.stringify(addm(m(3),m(4))));
+		
+		logSeperator();
+		logb("Exp function that evaluates simple array expressions");
+		var exp = function(arr){
+			
+			// you could also use Array.isArray(value) ? value[0](value[1],value[2])
+			if(typeof arr === 'number' ){
+				return arr;
+			}else{
+				var func = arr[0]; 
+				return func.apply(null, arr.slice(1));
+			};
+		
+		};
+		
+		var sae = [mul,3,4];
+		log("exp(sae) = " + exp(sae));
+		log("exp(42) = " + exp(42));
+		logSeperator();
+		logb("Modify exp to evaluate arrays of arrays of expressions");
+		var exp = function(args){
+			function evaluate(arr){	
+				if(Array.isArray(arr)){				
+					return arr[0].apply(null, arr.slice(1).map(function(e){
+						return evaluate(e);
+					}));
+					
+					
+				}else{
+					log("returning " + arr);
+					return arr;
+				}
+			};
+			return evaluate(args);
+		}
+		var nae = [ Math.sqrt , [ add , [ square , 3 ], [ square, 4]]];
+		log("exp(nae) = " + exp(nae)); // 5
+		
+		logSeperator();
+		logb("Write a function addg that adds from many invocations, until it sees and empty invocation");
+		var addg = function(arg){
+			var ssum = undefined; 			
+			return (function addg2(e){
+				if(e !== undefined){
+					ssum = (ssum || 0) + e; 
+					return addg2; 
+				}
+				return ssum;
+			}(arg));						
+		}
+			
+		log("addg() =" + addg()); // undefined 
+		log("addg(2)() =" + addg(2)()); // 2
+		log("addg(2)(7)() = " + addg(2)(7)()); // 9
+		log("addg(3)(4)(0)() = " + addg(3)(4)(0)()); // 7
+		log("addg(1)(2)(4)(8)(0) =" + addg(1)(2)(4)(8)()); // 15
+		
+		
+		logSeperator();
+		logb("Applyg that will take a binary function and apply it to many invocations");
+		var applyg = function(binary){
+			var agg = undefined; 
+			return function more(arg){
+				if(arg !== undefined){
+					if(!agg){
+						agg = arg;
+					}else{
+						agg = binary(agg,arg);
+					}
+					return more;
+				}
+				return agg;
+			}
+		}
+		
+		log("applyg(mul)() = " + applyg(mul)() ); // undefined
+		log("applyg(mul)(3)() = " + applyg(mul)(3)() ); // 3
+		log("applyg(mul)(3)(4)() = " + applyg(mul)(3)(4)() ); //12
+ 		log("applyg(mul)(3)(4)(5)() = " + applyg(mul)(3)(4)(5)() ); // 60
+		log("applyg(mul)(1)(2)(4)(8)() = " + applyg(mul)(1)(2)(4)(8)() ); // 64
+		
+		logSeperator();
+		logb("Arrayg() that will build an array from many invocations ");
+		var arrayg = function(arg){
+			var array = []; 
+			return (function dummy(e){
+				if(e=== undefined){ 
+					return array; 
+				}else {
+					array.push(e); 
+					return dummy;
+				}
+			}(arg));
+		}
+		log("arrayg() = " + JSON.stringify(arrayg()) ); // []
+		log("arrayg(1)() = " + JSON.stringify(arrayg(1)()) );	// [1]	
+		log("arrayg(1)(2)() = " + JSON.stringify(arrayg(1)(2)()) );	// [1,2]
+		log("arrayg(1)(2)(3)() = " + JSON.stringify(arrayg(1)(2)(3)()) ); // [1,2,3]				
+		logSeperator();
+		logb("Callback function");
+		var unaryc = function(func){
+			return function(callbk, arg){
+				return callbk(func(arg));
+			};
+		};
+		
+		var sqrtc = unaryc(Math.sqrt);
+		log("sqrtc(log,81) :");
+		sqrtc(log,81);
+		logSeperator();
+								
+		</script>
+	</div>
+</body>
+</html>
